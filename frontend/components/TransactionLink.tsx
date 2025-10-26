@@ -20,17 +20,18 @@ export default function TransactionLink({
       href={explorerUrl}
       target="_blank"
       rel="noopener noreferrer"
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      className="inline-flex items-center space-x-2 px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg text-sm text-blue-300 transition-all group"
+      whileHover={{ scale: 1.03, y: -2 }}
+      whileTap={{ scale: 0.97 }}
+      className="w-full flex items-center justify-center space-x-2 px-4 py-2.5 glass hover:border-cyan-400/60 border border-cyan-500/40 rounded-xl text-sm font-semibold text-cyan-300 transition-all duration-300 group cursor-pointer shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/30 relative overflow-hidden"
     >
-      <span>⛓️</span>
-      <span>{label}</span>
-      <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+      <span className="text-base relative z-10">🔗</span>
+      <span className="relative z-10">{label}</span>
+      <span className="text-xs opacity-70 group-hover:opacity-100 transition-opacity font-mono relative z-10">
         {digest.slice(0, 6)}...{digest.slice(-4)}
       </span>
       <svg 
-        className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" 
+        className="w-4 h-4 opacity-60 group-hover:opacity-100 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5 relative z-10" 
         fill="none" 
         stroke="currentColor" 
         viewBox="0 0 24 24"

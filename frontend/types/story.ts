@@ -1,3 +1,10 @@
+export interface Contributor {
+  address: string
+  role: 'creator' | 'contributor'
+  timestamp: number
+  transactionDigest: string
+}
+
 export interface StoryNode {
   id: string
   title: string
@@ -5,9 +12,10 @@ export interface StoryNode {
   ipfsCid: string
   parentId: string | null
   creator: string
+  contributors: Contributor[]
   createdAt: number
   transactionDigest: string
-  type: 'root' | 'child'
+  type: 'root' | 'merged'
 }
 
 export interface CreateStoryData {

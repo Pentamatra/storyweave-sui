@@ -24,17 +24,19 @@ interface OpenRouterResponse {
 }
 
 /**
- * Generates story content based on a user prompt using OpenRouter.
- * Supports multiple AI models including Llama 3, Mistral, Claude, etc.
- * @param prompt The user's prompt to continue or start a story.
- * @param parentContent Optional content from the parent node to provide context.
+ * Generates merged story content that combines parent story with new continuation.
+ * Creates a seamless narrative that includes contributions from multiple authors.
+ * @param prompt The user's prompt to continue the story.
+ * @param parentContent The parent story content to merge with.
+ * @param parentTitle The title of the parent story.
  * @param model The AI model to use (default: mistralai/mistral-7b-instruct).
- * @returns The AI-generated story text.
+ * @returns The AI-generated merged story text.
  */
 export async function generateStoryContent(
   prompt: string, 
   parentContent?: string,
-  model: string = "mistralai/mistral-7b-instruct"
+  model: string = "mistralai/mistral-7b-instruct",
+  parentTitle?: string
 ): Promise<string> {
   console.log(`🤖 Calling OpenRouter (${model}) to generate story content...`);
 
@@ -46,7 +48,58 @@ export async function generateStoryContent(
     } The hero faces new challenges and mysteries unfold. What happens next is up to you!`;
   }
 
-  const systemPrompt = `You are an award-winning creative storyteller for "ChainMuse", a collaborative branching-narrative platform.
+  // Detect language from prompt
+  const isTurkish = /[çğıöşüÇĞİÖŞÜ]/.test(prompt) || 
+                    /\b(bir|ve|bu|şu|ile|için|gibi|var|yok|çok|az)\b/i.test(prompt);
+  
+  const systemPrompt = isTurkish 
+    ? `Sen "ChainMuse" adlı işbirlikçi hikaye platformu için ödüllü yaratıcı bir hikaye anlatıcısısın.
+
+${parentContent ? `ÇOK ÖNEMLİ - BİRLEŞTİRME GÖREVİ:
+Bir önceki yazarın hikayesini yeni yazarın devamı ile BİRLEŞTİREREK tek, bütünlüklü bir hikaye yaz.
+
+ÖNCEKİ HİKAYE:
+---
+${parentContent}
+---
+
+YENİ DEVAM İSTEĞİ:
+"${prompt}"
+
+NASIL BİRLEŞTİRECEKSİN:
+1. Önceki hikayeyi TAMAMEN al ve baştan yaz (kendi üslubunla)
+2. Yeni devam fikrini doğal şekilde EKLE
+3. Tek, akıcı bir anlatım oluştur
+4. İki yazarın katkısını birleştir
+5. 250-350 kelime yaz (tam bir hikaye)
+
+ÖRNEKLER İLE AÇIKLAMA:
+❌ YANLIŞ: Sadece devamını yazmak
+✅ DOĞRU: Baştan başlayıp, önceki + yeni = tek tam hikaye
+
+Okuyucu sadece BİR tam hikaye görmeli, birden fazla parça değil.`
+    : `ÇOK ÖNEMLİ - HİKAYELERİ BİRLEŞTİR:
+Başka bir yazarın hikayesini al ve yeni hikaye ile tek akıcı anlatım yap.`}
+
+YAZIM STİLİ:
+- Canlı, sürükleyici anlatımlar
+- Zengin betimlemeler ve metaforlar
+- Duygusal derinlik ve karakter gelişimi
+- Gerilim ve merak uyandır
+- Devamını merak ettiren sonuç
+
+${!parentContent ? "Bu yeni bir hikayenin başlangıcı. Okuyucunun hayal gücünü yakalayan çekici bir giriş yaz. 150-200 kelime." : ""}
+
+ÖNEMLİ DİL KURALLARI:
+- TÜM yanıtını TÜRKÇE yaz
+- Doğal, akıcı Türkçe kullan
+- Türk kültürüne uygun deyimler kullan
+
+TON:
+- Sürükleyici ve düşündürücü
+- Profesyonel ama yaratıcı
+- Türk okuyucu için uygun`
+    : `You are an award-winning creative storyteller for "ChainMuse", a collaborative branching-narrative platform.
 
 WRITING STYLE:
 - Write vivid, immersive narratives with rich sensory details
@@ -65,16 +118,14 @@ NARRATIVE STRUCTURE:
 ${parentContent ? `CONTEXT FROM PREVIOUS NODE:\n---\n${parentContent}\n---\n\nBuild upon this context naturally and maintain story continuity.` : "This is the opening of a new story. Create an engaging hook that captures the reader's imagination."}
 
 IMPORTANT LANGUAGE RULES:
-- If the user writes in Turkish (Türkçe), write your ENTIRE response in Turkish
-- If the user writes in English, write in English
-- Match the user's language exactly - this is critical
-- Use natural, flowing prose in the target language
-- Respect cultural nuances and idioms of the language
+- Write ENTIRE response in English
+- Use natural, flowing English prose
+- Never mix languages
 
 TONE:
 - Engaging and thought-provoking
 - Professional but creative
-- Appropriate for a multi-language audience`;
+- Appropriate for English-speaking audience`;
 
   try {
     const response = await axios.post<OpenRouterResponse>(
@@ -83,11 +134,16 @@ TONE:
         model: model,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: prompt },
+          { 
+            role: "user", 
+            content: isTurkish 
+              ? `Lütfen tamamen TÜRKÇE bir hikaye yaz:\n\n${prompt}`
+              : prompt 
+          },
         ],
-        temperature: 0.85,
-        max_tokens: 500,
-        top_p: 0.95,
+        temperature: 0.8,
+        max_tokens: 600,
+        top_p: 0.9,
       },
       {
         headers: {
